@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        {% load bootstrap5 %}
+        {% bootstrap_css %}
+        {% bootstrap_javascript %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+
+    <header style="background-color: black;">
+        <div class="row">
+            <div class="col-8">
+                <img src="{% static 'users/logo.jpg' %}" style="height: 70px;"/>
+            </div>
+            <div class="col-2">
+                <p style="color: white; text-align: right; padding: 20px 0; height: 50px;">¡Hola {{ user.first_name}}!</p>
+            </div>
+            <div class="col-2" style="display: flex;justify-content: center; padding: 10px 0;">
+                <div class="dropdown">
+                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false" style="height: 50px;">
+                        <img src="{% static 'users/accountIcon.png' %}" style="height: 40px;"/>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
+                      <li><a class="dropdown-item" href="#">Mi Cuenta</a></li>
+                      <li><a class="dropdown-item" href="#">Cambiar Contraseña</a></li>
+                      <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    </ul>
+                  </div>
+            </div>
+        </div>
+    </header>

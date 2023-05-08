@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        {% load static %}
+        {% load bootstrap5 %}
+        {% bootstrap_css %}
+        {% bootstrap_javascript %}
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+
+    <header style="background-color: black;">
+        <div class="row text-center">
+            <div class="col-4">
+
+            </div>
+            <div class="col-4">
+                <a href="/">
+                    <img src="{% static 'users/logo.jpg' %}" style="height: 70px;"/>
+                </a>
+            </div>
+            <div class="col-4">
+                
+            </div>
+    </header>
+    <body>
+        {% block content %}
+
+        {% if form.errors %}
+            <p>Your username and password didn't match. Please try again.</p>
+        {% endif %}
+
+        {% if next %}
+            {% if user.is_authenticated %}
+            <p>Your account doesn't have access to this page. To proceed,
+            please login with an account that has access.</p>
+            {% else %}
+            <p>Please login to see this page.</p>
+            {% endif %}
+        {% endif %}
+
+        <div class="row justify-content-center text-center">
+            <div class="col-auto">
+                <form method="post" action="{% url 'login' %}" class="form" style="position: relative; top: 150px;">
+                    {% csrf_token %}
+                    <table>
+                        <tr style="padding-bottom: 100px;">
+                            <td>DNI:</td>
+                            <td>{{ form.username }}</td>
+                        </tr>
+                        <tr style="padding-bottom: 100px;">
+                            <td>{{ form.password.label_tag }}</td>
+                            <td>{{ form.password }}</td>
+                        </tr>
+                    </table>
+                    <div style="padding: 20px 0;">
+                        <input type="submit" value="Iniciar Sesión">
+                    </div>
+                    <input type="hidden" name="next" value="{{ next }}">
+                    <p><a href="{% url 'password_reset' %}">¿Has olvidado tu contraseña?</a></p>
+                </form>
+            </div>
+        </div>
+
+        {% endblock %}
+    </body>
