@@ -16,11 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from autonomo import views as user_views
+from django.contrib.auth import views as auth_views
 
 
 urlpatterns = [
+    path("accounts/password_change/", auth_views.PasswordChangeView.as_view(success_url="/global/")),
     path("", include("autonomo.urls")),
-    path('admin/', admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
+    path('admin/', admin.site.urls),
+
 ]

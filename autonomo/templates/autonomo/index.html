@@ -10,23 +10,83 @@
 
     <header style="background-color: black;">
         <div class="row">
-            <div class="col-8">
+            <div class="col-9">
                 <img src="{% static 'users/logo.jpg' %}" style="height: 70px;"/>
             </div>
-            <div class="col-2">
-                <p style="color: white; text-align: right; padding: 20px 0; height: 50px;">¡Hola {{ user.first_name}}!</p>
-            </div>
-            <div class="col-2" style="display: flex;justify-content: center; padding: 10px 0;">
-                <div class="dropdown">
-                    <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false" style="height: 50px;">
-                        <img src="{% static 'users/accountIcon.png' %}" style="height: 40px;"/>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
-                      <li><a class="dropdown-item" href="#">Mi Cuenta</a></li>
-                      <li><a class="dropdown-item" href="#">Cambiar Contraseña</a></li>
-                      <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
-                    </ul>
-                  </div>
+            <div class="col-3" style="display: flex;justify-content: center; padding: 10px 0;">
+                <table style="height: 20px;">
+                    <tr>
+                        <td style="vertical-align: bottom;">
+                            <p style="color: white; text-align: right;">¡Hola {{ user.first_name}}!</p>
+                        </td>
+                        <td>
+                            <div class="dropdown">
+                                <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false" style="height: 50px; color: white;">
+                                    <img src="{% static 'users/accountIcon.png' %}" style="height: 30px;"/>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
+                                  <li><a class="dropdown-item" href="#">Mi Cuenta</a></li>
+                                  <li><a class="dropdown-item" href="#">Cambiar Contraseña</a></li>
+                                  <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
     </header>
+
+    <body>
+        <div class="row justify-content-center text-center" style="padding: 20px 0;">
+			<h1>
+				Cree su empresa ahora
+			</h1>
+		</div>
+		<div class="row justify-content-center text-center">
+			<div class="col-auto">
+				<form method="post" class="form">
+					{% csrf_token %}
+					{{ formset.management_form }}
+					{{ formset.errors }}
+					{{ formset.non_field_errors }}
+					{{ formset.non_form_errors }}
+					{% if form.errors %}
+						{% for field in form %}
+							{% if not field.html_name == "username" %}
+								{% for error in field.errors %}
+									<p> {{ error }} </p>
+								{% endfor %}
+							{% endif %}
+						{% endfor %}
+					{% endif %}
+					<table>
+						<tr>
+							<td style="text-align: right;"> {{ form.nif.label_tag }} </td>
+							<td> {{ form.nif }} </td>
+						</tr>
+						<tr>
+							<td style="text-align: right;"> {{ form.name.label_tag }} </td>
+							<td> {{ form.name }} </td>
+						</tr>
+						<tr>
+							<td style="text-align: right;"> {{ form.address.label_tag }} </td>
+							<td> {{ form.address }} </td>
+						</tr>
+						<tr>
+							<td style="text-align: right;"> {{ form.activity.label_tag }} </td>
+							<td> {{ form.activity }} </td>
+						</tr>
+                        <tr>
+							<td style="text-align: right;"> {{ form.foundation_date.label_tag }} </td>
+							<td> {{ form.foundation_date }} </td>
+						</tr>
+					</table>
+					<div style="padding: 20px 0;">
+						<input style="align-content: center;" type="submit" value="Crear Empresa"/>
+					</div>
+				</form>
+			</div>
+		</div>
+    </body>
+</html>
