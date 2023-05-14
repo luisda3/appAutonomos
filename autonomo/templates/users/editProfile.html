@@ -1,62 +1,6 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        {% load static %}
-        {% load bootstrap5 %}
-        {% bootstrap_css %}
-        {% bootstrap_javascript %}
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-    </head>
-
-    <header style="background-color: black;">
-        <div class="row">
-            <div class="col-2">
-                <a href="/global" style="color: black">
-                    <h4 style="color: white; height: 50px; padding: 20px 0; padding-left: 50px;">
-                        {% for com in company %}
-                            {{ com.name }}
-                        {% endfor %}
-                    </h4>
-                </a>
-            </div>
-            <div class="col-7">
-                <nav class="navbar navbar-expand-lg navbar-light" style="height: 70px;">
-                    <div class="container-fluid">
-                      <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
-                        <div class="navbar-nav">
-                            <a class="nav-link" style="color: white;" href="#">Facturación</a>
-                            <a class="nav-link" style="color: white;" aria-current="page" href="#">Contabilidad</a>
-                            <a class="nav-link" style="color: white;" href="#">Almacén</a>
-                            <a class="nav-link" style="color: white;" href="#">Partners</a>
-                        </div>
-                      </div>
-                    </div>
-                </nav>
-            </div>
-            <div class="col-3" style="display: flex;justify-content: center; padding: 10px 0;">
-                <table style="height: 20px;">
-                    <tr>
-                        <td style="vertical-align: bottom;">
-                            <p style="color: white; text-align: right;">¡Hola {{ user.first_name}}!</p>
-                        </td>
-                        <td>
-                            <div class="dropdown">
-                                <button class="btn dropdown-toggle" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown" aria-expanded="false" style="height: 50px; color: white;">
-                                    <img src="{% static 'users/accountIcon.png' %}" style="height: 40px;"/>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="dropdownMenuButton1">
-                                  <li><a class="dropdown-item" href="/accounts/showProfile">Mi Cuenta</a></li>
-                                  <li><a class="dropdown-item" href="/accounts/showCompany">Mi Empresa</a></li>
-                                  <li><a class="dropdown-item" href="#">Cambiar Contraseña</a></li>
-                                  <li><a class="dropdown-item" href="{% url 'logout' %}">Cerrar Sesión</a></li>
-                                </ul>
-                            </div>
-                        </td>
-                    </tr>
-                </table>
-            </div>
-        </div>
-    </header>
+    {% include "../autonomo/base.html" %}
 
     <body style="background-color: beige;">
 		<div class="row justify-content-center text-center" style="padding: 20px 0;">

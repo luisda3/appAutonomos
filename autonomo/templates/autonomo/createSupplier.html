@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    {% include "./base.html" %}
+    <body style="background-color: beige;">
+        <div class="row justify-content-center text-center" style="padding: 20px 0;">
+            <h1>
+                Nuevo Proveedor
+            </h1>
+        </div>
+        <div class="row justify-content-center text-center">
+            <div class="col-auto">
+                <form method="post" class="form">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+                    {{ formset.errors }}
+                    {{ formset.non_field_errors }}
+                    {{ formset.non_form_errors }}
+                    {% if form.errors %}
+                        {% for field in form %}
+                            {% if not field.html_name == "username" %}
+                                {% for error in field.errors %}
+                                    <p> {{ error }} </p>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <table>
+                        <tr>
+                            <td style="text-align: right;"> {{ form.nif.label_tag }} </td>
+                            <td> {{ form.nif }} </td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: right;"> {{ form.name.label_tag }} </td>
+                            <td> {{ form.name }} </td>
+                        </tr>
+                    </table>
+                    <div style="padding: 20px 0;">
+                        <input style="align-content: center;" type="submit" value="Crear Proveedor"/>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

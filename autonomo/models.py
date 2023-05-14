@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
 from django.forms import ModelForm
-from datetime import date, datetime
+from datetime import date
 
 # Create your models here.
 
@@ -53,16 +53,15 @@ class UpdateUserAutonomoForm(ModelForm):
         widgets = {'birthdate': DateInput()}
         fields = ["first_name", "last_name", "birthdate", "address", "city"]
 
-    # def clean(self):
-    #     cleaned_data = super(UserAutonomoForm, self).clean()
+    def clean(self):
+        cleaned_data = super(UserAutonomoForm, self).clean()
 
-    #     today = date.today()
-    #     age = today.year - cleaned_data["birthdate"].year - ((today.month, today.day) < (cleaned_data["birthdate"].month, cleaned_data["birthdate"].day))
-    #     if age < 18:
-    #         self.add_error("birthdate", "Debes ser mayor de edad.")
+        today = date.today()
+        age = today.year - cleaned_data["birthdate"].year - ((today.month, today.day) < (cleaned_data["birthdate"].month, cleaned_data["birthdate"].day))
+        if age < 18:
+            self.add_error("birthdate", "Debes ser mayor de edad.")
             
     
-
 class CompanyForm(ModelForm):
 
     class Meta():
@@ -76,3 +75,26 @@ class CompanyForm(ModelForm):
         today = date.today()
         if cleaned_data["foundation_date"] > today:
             self.add_error("foundation_date", "La fecha de fundación no puede ser posterior a la fecha actual.")
+
+
+class Product(models.Model):
+    cod = models.IntegerField()
+    name = models.CharField(max_length=20)
+    description = models.CharField(max_length=100)
+    cost_price = models.FloatField()
+    sale_price = models.FloatField()
+    stock_min = models.IntegerField()
+    iva = models.IntegerField()
+
+
+class Supplier(models.Model):
+    nif = models.CharField(max_length=20)
+    name = models.CharField(max_length=30)
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="supplier_belongs_to")
+
+
+class SupplierForm(ModelForm):
+
+    class Meta():
+        model = Supplier
+        fields = "__all__"
