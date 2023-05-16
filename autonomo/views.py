@@ -1,7 +1,9 @@
 from django.shortcuts import render, redirect
 from django.core.paginator import Paginator
 from django.contrib.auth import login
-from .models import UserAutonomoForm, CompanyForm, Company, UserAutonomo, UpdateUserAutonomoForm, Supplier, SupplierForm
+from django.core.exceptions import ObjectDoesNotExist
+
+from .models import UserAutonomoForm, CompanyForm, Company, UserAutonomo, UpdateUserAutonomoForm, Supplier, SupplierForm, Product, ProductForm
 
 # Create your views here.
 def main(request):
@@ -27,8 +29,6 @@ def autonomo(request):
 
     if request.user.is_authenticated:
 
-        company = Company.objects.get(user=request.user.id)
-
         if request.method == "POST":
             data = request.POST.copy()
             data['user'] = request.user
@@ -38,11 +38,13 @@ def autonomo(request):
                 return redirect("/global")
             else:
                 return render(request, "autonomo/index.html", context={"form": form})
-        elif company:
-            return redirect("/global")
         else:
-            form = CompanyForm()
-            return render(request, "autonomo/index.html", context={"form": form})
+            try:
+                company = Company.objects.get(user=request.user.id)
+                return redirect("/global")
+            except ObjectDoesNotExist:
+                form = CompanyForm()
+                return render(request, "autonomo/index.html", context={"form": form})
     else:
         return redirect("/accounts/login")
 
@@ -112,7 +114,7 @@ def editCompany(request):
             form = CompanyForm(data, instance=company)
             if form.is_valid():
                 form.save()
-                return redirect("/account/showCompany")
+                return redirect("/autonomo/showCompany")
             else:
                 return render(request,"autonomo/editCompany.html", context={'form': form, "company": company} )
         else:
@@ -127,8 +129,9 @@ def showSuppliers(request):
 
     if request.user.is_authenticated:
 
-        suppliers = Supplier.objects.all()
         company = Company.objects.get(user=request.user.id)
+        suppliers = Supplier.objects.filter(company=company.id)
+
         paginator = Paginator(suppliers, per_page=2)
         suppliers_page = paginator.page(1)
         pages_list = []
@@ -143,8 +146,9 @@ def showSuppliersPaginate(request, page):
 
     if request.user.is_authenticated:
 
-        suppliers = Supplier.objects.all()
         company = Company.objects.get(user=request.user.id)
+        suppliers = Supplier.objects.filter(company=company.id)
+
         paginator = Paginator(suppliers, per_page=2)
         suppliers_page = paginator.get_page(page)
         pages_list = []
@@ -162,7 +166,7 @@ def createSupplier(request):
 
         if request.method == "POST":
             data = request.POST.copy()
-            data["company"] = company 
+            data["company"] = company
             form = SupplierForm(data)
             if form.is_valid():
                 supplier = form.save()
@@ -205,3 +209,96 @@ def editSupplier(request, sup_id):
             return render(request, "autonomo/editSupplier.html", context={"company": company, "form": form})
 
     return redirect("/accounts/login")
+
+def showProducts(request):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+
+        products = Product.objects.filter(company=company.id)
+        paginator = Paginator(products, per_page=4)
+        products_page = paginator.page(1)
+        pages_list = []
+        for i in range(products_page.paginator.num_pages):
+            pages_list.append(i+1)
+
+        return render(request, "autonomo/showProducts.html", context={"company": company, "products": products_page, "pages_list": pages_list})
+    
+    return redirect("/accounts/login")
+
+def showProductsPaginate(request, page):
+
+    if request.user.is_authenticated:
+
+        company = Company.objects.get(user=request.user.id)
+        products = Product.objects.filter(company=company.id)
+        paginator = Paginator(products, per_page=4)
+        products_page = paginator.get_page(page)
+        pages_list = []
+        for i in range(products_page.paginator.num_pages):
+            pages_list.append(i+1)
+
+        return render(request, "autonomo/showProducts.html", context={"company": company, "products": products_page, "pages_list": pages_list})
+    
+    return redirect("/accounts/login")
+
+def createProduct(request):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+
+        if request.method == "POST":
+            data = request.POST.copy()
+            data["company"] = company 
+            form = ProductForm(data, request.FILES)
+            print(form.errors)
+            if form.is_valid():
+                product = form.save()
+                return redirect("/autonomo/showProduct/" + str(product.id))
+            else:
+                return render(request, "autonomo/createProduct.html", context={"company": company, 'form': form} )
+        else:
+            form = ProductForm()
+            return render(request, "autonomo/createProduct.html", context={"company": company, "form": form})
+        
+    return redirect("/accounts/login")
+
+def showProduct(request, prod_id):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        product = Product.objects.get(id=prod_id)
+
+        return render(request, "autonomo/showProduct.html", context={"company": company, "product": product})
+
+def editProduct(request, prod_id):
+    
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        product = Product.objects.get(id=prod_id)
+
+        if request.method == "POST":
+            data = request.POST.copy()
+            data["company"] = company.id
+            form = ProductForm(data, instance=product)
+            if form.is_valid():
+                product = form.save()
+                return redirect("/autonomo/showProduct/" + str(product.id))
+            else:
+                return render(request,"autonomo/editProduct.html", context={'form': form, "company": company} )
+        else:
+            form = ProductForm(instance=product)
+
+            return render(request, "autonomo/editProduct.html", context={"company": company, "form": form})
+
+    return redirect("/accounts/login")
+
+def deleteProduct(request, prod_id):
+    if request.user.is_authenticated:
+        Product.objects.get(id=prod_id).delete()
+        return redirect("/autonomo/showProducts")
+
+def deleteSupplier(request, sup_id):
+    if request.user.is_authenticated:
+        Supplier.objects.get(id=sup_id).delete()
+        return redirect("/autonomo/showSuppliers")

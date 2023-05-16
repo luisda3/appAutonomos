@@ -24,7 +24,7 @@ class Company(models.Model):
     address = models.CharField(max_length=50)
     activity = models.CharField(max_length=20)
     foundation_date = models.DateField()
-    user = models.OneToOneField(UserAutonomo, on_delete=models.CASCADE)
+    user = models.OneToOneField(UserAutonomo, on_delete=models.CASCADE, related_name="company_belongs_to")
 
 
 class DateInput(forms.DateInput):
@@ -85,6 +85,15 @@ class Product(models.Model):
     sale_price = models.FloatField()
     stock_min = models.IntegerField()
     iva = models.IntegerField()
+    image = models.ImageField(upload_to = 'images/')
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="company_belongs_to")
+
+
+class ProductForm(ModelForm):
+    
+    class Meta():
+        model = Product
+        fields = "__all__"
 
 
 class Supplier(models.Model):

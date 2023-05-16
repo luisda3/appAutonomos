@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+    {% include "./base.html" %}
+    <body>
+        <div class="row justify-content-center text-center" style="padding: 20px 0;">
+            <h1>
+                Producto
+            </h1>
+        </div>
+        <div class="row justify-content-center text-center">
+			<div class="col-auto">
+                {% csrf_token %}
+                <table>
+                    <tr>
+                        <img style="width: 200px;" src="{{ product.image.url }}" alt="Card image cap">
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> Cod: </td>
+                        <td> {{ product.cod }} </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> Nombre: </td>
+                        <td> {{ product.name }} </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> Description: </td>
+                        <td> {{ product.description }} </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> Precio Coste: </td>
+                        <td> {{ product.cost_price }} </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> Precio Venta: </td>
+                        <td> {{ product.sale_price }} </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> Stock Mínimo: </td>
+                        <td> {{ product.stock_min }} </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: right;"> IVA: </td>
+                        <td> {{ product.iva }} </td>
+                    </tr>
+                </table>
+                <div style="padding: 20px 0;">
+                    <a href="/autonomo/editProduct/{{ product.id }}">  
+                        <input class="btn btn-success" type="submit" value="Editar"/>  
+                    </a>
+                    <a href="/autonomo/deleteProduct/{{ product.id }}">  
+                        <input class="btn btn-danger" type="submit" value="Eliminar"/>  
+                    </a>
+                </div>
+			</div>
+		</div>
+    </body>
+</html>
