@@ -22,5 +22,16 @@ urlpatterns = [
     path("autonomo/createProduct", views.createProduct, name="createProduct"),
     path("autonomo/editProduct/<int:prod_id>", views.editProduct, name="editProduct"),
     path("autonomo/deleteProduct/<int:prod_id>", views.deleteProduct, name="deleteProduct"),
-    path("autonomo/deleteSupplier/<int:sup_id>",views.deleteSupplier, name="deleteSupplier")
+    path("autonomo/deleteSupplier/<int:sup_id>",views.deleteSupplier, name="deleteSupplier"),
+    path("autonomo/createInvoice", views.createInvoice, name="createInvoice"),
+    path("autonomo/showInvoice/<int:inv_id>", views.showInvoice, name="showInvoice"),
+    path("autonomo/createInvoiceLine/<int:inv_id>", views.createInvoiceLine, name="createInvoiceLine"),
+    path("autonomo/showInvoices/", views.showInvoices, name="showInvoices"),
+    path("autonomo/showInvoices/<int:page>", views.showInvoicesPaginate, name="showInvoicesPaginate"),
+    path("autonomo/showAccountingYears", views.showAccountingYears, name="showAccountingYears"),
+    path("autonomo/showInvoicesYear/<int:year>", views.showInvoicesYear, name="showInvoicesYear"),
+    path("autonomo/editInvoiceLine/<int:line>", views.editInvoiceLine, name="editInvoiceLine"),
+    path("autonomo/deleteInvoiceLine/<int:line>", views.deleteInvoiceLine, name="deleteInvoiceLine"),
+    path("autonomo/editInvoice/<int:inv_id>", views.editInvoice, name="editInvoice"),
+    path("autonomo/deleteInvoice/<int:inv_id>", views.deleteInvoice, name="deleteInvoice"),
 ]

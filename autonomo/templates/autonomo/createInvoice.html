@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+    {% include "./base.html" %}
+    <body style="background-color: beige;">
+        <div class="row justify-content-center text-center" style="padding: 20px 0;">
+            <h1>
+                Crear Factura
+            </h1>
+            <div class="card" style="width: 35cm;">
+                <form class="form" method="post">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+                    {{ formset.errors }}
+                    {{ formset.non_field_errors }}
+                    {{ formset.non_form_errors }}
+                    {% if form.errors %}
+                        {% for field in form %}
+                            {% if not field.html_name == "username" %}
+                                {% for error in field.errors %}
+                                    <p> {{ error }} </p>
+                                {% endfor %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+                    <div class="row">
+                        <div class="col-4">
+                            <p> 
+                                {{ form.name.label_tag }}
+                            </p>
+                            <h1>
+                                {{ form.name }}
+                            </h1>
+                        </div>
+                        <div class="col-5">
+        
+                        </div> 
+                        <div class="col-2" style="text-align: center">
+                            <div class="row">
+                                {{ form.invoicing_date.label_tag }}
+                                {{ form.invoicing_date }}
+                            </div>
+                            <div class="row">
+                                {{ form.supplier.label_tag }}
+                                {{ form.supplier }}
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <input type="submit" class="btn btn-success" value="Crear Factura">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
+</html>

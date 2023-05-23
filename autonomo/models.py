@@ -35,13 +35,16 @@ class UserAutonomoForm(UserCreationForm):
     class Meta():
         model = UserAutonomo
         widgets = {'birthdate': DateInput()}
-        fields = ["username", "first_name", "last_name", "dni", "birthdate", "address", "city", "email", "password1", "password2"]
+        fields = ["username", "first_name", "last_name", "dni", "birthdate",
+                  "address", "city", "email", "password1", "password2"]
 
     def clean(self):
         cleaned_data = super(UserAutonomoForm, self).clean()
 
         today = date.today()
-        age = today.year - cleaned_data["birthdate"].year - ((today.month, today.day) < (cleaned_data["birthdate"].month, cleaned_data["birthdate"].day))
+        age = today.year - cleaned_data["birthdate"].year - (
+            (today.month, today.day) < (cleaned_data["birthdate"].month, cleaned_data["birthdate"].day))
+        
         if age < 18:
             self.add_error("birthdate", "Debes ser mayor de edad para poder registrarte.")
             
@@ -54,10 +57,12 @@ class UpdateUserAutonomoForm(ModelForm):
         fields = ["first_name", "last_name", "birthdate", "address", "city"]
 
     def clean(self):
-        cleaned_data = super(UserAutonomoForm, self).clean()
+        cleaned_data = super(UpdateUserAutonomoForm, self).clean()
 
         today = date.today()
-        age = today.year - cleaned_data["birthdate"].year - ((today.month, today.day) < (cleaned_data["birthdate"].month, cleaned_data["birthdate"].day))
+        age = today.year - cleaned_data["birthdate"].year - (
+            (today.month, today.day) < (cleaned_data["birthdate"].month, cleaned_data["birthdate"].day))
+        
         if age < 18:
             self.add_error("birthdate", "Debes ser mayor de edad.")
             
@@ -88,6 +93,9 @@ class Product(models.Model):
     image = models.ImageField(upload_to = 'images/')
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="company_belongs_to")
 
+    def __str__(self):
+        return self.name
+
 
 class ProductForm(ModelForm):
     
@@ -101,9 +109,53 @@ class Supplier(models.Model):
     name = models.CharField(max_length=30)
     company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="supplier_belongs_to")
 
+    def __str__(self):
+        return self.name
 
 class SupplierForm(ModelForm):
 
     class Meta():
         model = Supplier
+        fields = "__all__"
+
+class AccountingYear(models.Model):
+    year = models.IntegerField()
+    company = models.ForeignKey(Company, on_delete=models.CASCADE, related_name="accountingYear_belong_to")
+
+    def __str__(self):
+        return str(self.year)
+
+
+class Invoice(models.Model):
+
+    name = models.CharField(max_length=10, unique=True)
+    invoicing_date = models.DateField()
+    supplier = models.ForeignKey(Supplier, on_delete=models.CASCADE, related_name="invoice_is_invoiced_by")
+    accounting_year = models.ForeignKey(AccountingYear, on_delete=models.CASCADE, related_name="invoice_belong_to")
+    subtotal = models.FloatField()
+    iva = models.FloatField()
+    total = models.FloatField()
+
+
+class InvoiceForm(ModelForm):
+
+    class Meta():
+        model = Invoice
+        widgets = {"invoicing_date": DateInput()}
+        fields = "__all__"
+
+
+class InvoiceLine(models.Model):
+
+    quantity = models.IntegerField()
+    invoice = models.ForeignKey(Invoice, on_delete=models.CASCADE, related_name="invoiceLine_belongs_to")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="invoiceLine_of")
+    subtotal = models.FloatField()
+    iva = models.FloatField()
+
+
+class InvoiceLineForm(ModelForm):
+
+    class Meta():
+        model = InvoiceLine
         fields = "__all__"

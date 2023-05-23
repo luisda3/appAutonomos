@@ -3,7 +3,7 @@ from django.core.paginator import Paginator
 from django.contrib.auth import login
 from django.core.exceptions import ObjectDoesNotExist
 
-from .models import UserAutonomoForm, CompanyForm, Company, UserAutonomo, UpdateUserAutonomoForm, Supplier, SupplierForm, Product, ProductForm
+from .models import UserAutonomoForm, CompanyForm, Company, UserAutonomo, UpdateUserAutonomoForm, Supplier, SupplierForm, Product, ProductForm, Invoice, InvoiceForm, InvoiceLineForm, InvoiceLine, AccountingYear
 
 # Create your views here.
 def main(request):
@@ -61,20 +61,26 @@ def globalPosition(request):
 def showProfile(request):
 
     if request.user.is_authenticated:
-        company = Company.objects.get(user=request.user.id)
-        users = UserAutonomo.objects.filter(dni=request.user.username)
+        user = UserAutonomo.objects.get(dni=request.user.username)
 
-        return render(request, "users/showProfile.html", context={"company": company, "autonomo": users[0]})
+        try:
+            company = Company.objects.get(user=request.user.id)
+        except ObjectDoesNotExist:
+            return render(request, "users/showProfile2.html", context={"autonomo": user})
+
+        return render(request, "users/showProfile.html", context={"company": company, "autonomo": user})
     
     return redirect("/accounts/login")
 
 def editProfile(request):
 
     if request.user.is_authenticated:
-        if request.method == "POST":
-            user = UserAutonomo.objects.get(dni=request.user.username)
+        company = Company.objects.get(user=request.user.id)
+        user = UserAutonomo.objects.get(dni=request.user.username)
 
-            form = UpdateUserAutonomoForm(request.POST, instance=request.user)
+        if request.method == "POST":
+
+            form = UpdateUserAutonomoForm(request.POST)
             if form.is_valid():
                 user.first_name = request.POST["first_name"]
                 user.last_name = request.POST["last_name"]
@@ -82,13 +88,11 @@ def editProfile(request):
                 user.address = request.POST["address"]
                 user.city = request.POST["city"]
                 user.save()
-                return redirect("/account/showProfile")
+                return redirect("/accounts/showProfile")
             else:
-                company = Company.objects.get(user=request.user.id)
-                return render(request,"users/editProfile.html", context={'form': form, "company": company} )
-        user = UserAutonomo.objects.get(dni=request.user.username)
+                return render(request,"users/editProfile.html", context={'form': form, "company": company})
+            
         form = UpdateUserAutonomoForm(instance=user)
-        company = Company.objects.get(user=request.user.id)
 
         return render(request, "users/editProfile.html", context={"company": company, "form": form})
     
@@ -297,8 +301,247 @@ def deleteProduct(request, prod_id):
     if request.user.is_authenticated:
         Product.objects.get(id=prod_id).delete()
         return redirect("/autonomo/showProducts")
+    
+    return redirect("/accounts/login")
 
 def deleteSupplier(request, sup_id):
     if request.user.is_authenticated:
         Supplier.objects.get(id=sup_id).delete()
         return redirect("/autonomo/showSuppliers")
+    
+    return redirect("/accounts/login")
+
+def createInvoice(request):
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        if request.method == "POST":
+            data = request.POST.copy()
+            data["subtotal"] = 0.0
+            data["iva"] = 0.0
+            data["total"] = 0.0
+            data_split = str(data["invoicing_date"]).split("-")
+            try:
+                year = AccountingYear.objects.get(year=data_split[0], company=company.id)
+            except ObjectDoesNotExist:
+                year = AccountingYear(year=data_split[0], company=company)
+                year.save()
+            data["accounting_year"] = year
+            form = InvoiceForm(data)
+            if form.is_valid():
+                invoice = form.save()
+                return redirect("/autonomo/showInvoice/"+str(invoice.id))
+            else:
+                return render(request, "autonomo/createInvoice.html", context={"company": company, "form": form})
+        else:
+            form = InvoiceForm()
+            return render(request, "autonomo/createInvoice.html", context={"company": company, "form": form})
+    
+    else:
+        return redirect("accounts/login")
+    
+def showInvoice(request, inv_id):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+
+        invoice = Invoice.objects.get(id=inv_id)
+            
+        lines = InvoiceLine.objects.filter(invoice=inv_id)
+
+        return render(request, "autonomo/showInvoice.html", context={"company": company, "invoice": invoice, "lines": lines})
+
+def createInvoiceLine(request, inv_id):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        if request.method == "POST":
+            data = request.POST.copy()
+            data["invoice"] = inv_id
+            product = Product.objects.get(id=data["product"])
+            data["subtotal"] = int(data["quantity"]) * product.sale_price
+            data["iva"] = round(float(int(data["quantity"]) * (product.sale_price * (product.iva/100))),2)
+            form = InvoiceLineForm(data)
+            if form.is_valid():
+                line = form.save()
+                invoice = Invoice.objects.get(id=inv_id)
+                invoice.subtotal += line.subtotal
+                invoice.iva += line.iva
+                invoice.total = invoice.subtotal + invoice.iva
+                invoice.save()
+                return redirect("/autonomo/showInvoice/" + str(inv_id))
+            else:
+                return render(request, "/autonomo/createInvoiceLine.html", context={"company": company, "form": form})
+        else:
+            form = InvoiceLineForm()
+            return render(request, "autonomo/createInvoiceLine.html", context={"company": company, "form": form})
+    else:
+        return redirect("accounts/login")
+    
+def showInvoices(request):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        accountyear = AccountingYear.objects.filter(company=company.id)
+        invoices = Invoice.objects.none()
+        for year in accountyear:
+            invoicess = Invoice.objects.filter(accounting_year=year.id)
+            invoices = invoices | invoicess
+
+        paginator = Paginator(invoices, per_page=2)
+        invoices_page = paginator.page(1)
+        pages_list = []
+        for i in range(invoices_page.paginator.num_pages):
+            pages_list.append(i+1)
+
+        return render(request, "autonomo/showInvoices.html", context={"company": company, "invoices": invoices_page, "pages_list": pages_list})
+    
+    return redirect("/accounts/login")
+
+
+def showInvoicesPaginate(request, page):
+
+    if request.user.is_authenticated:
+
+        company = Company.objects.get(user=request.user.id)
+        accountyear = AccountingYear.objects.filter(company=company.id)
+        invoices = Invoice.objects.none()
+        for year in accountyear:
+            invoicess = Invoice.objects.filter(accounting_year=year.id)
+            invoices = invoices | invoicess
+            
+        paginator = Paginator(invoices, per_page=2)
+        invoices_page = paginator.page(page)
+        pages_list = []
+        for i in range(invoices_page.paginator.num_pages):
+            pages_list.append(i+1)
+
+        return render(request, "autonomo/showInvoices.html", context={"company": company, "invoices": invoices_page, "pages_list": pages_list})
+    
+    return redirect("/accounts/login")
+
+def showAccountingYears(request):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        accountyear = AccountingYear.objects.filter(company=company.id)
+        paginator = Paginator(accountyear, per_page=4)
+        accountyear_page = paginator.page(1)
+        pages_list = []
+        for i in range(accountyear_page.paginator.num_pages):
+            pages_list.append(i+1)
+
+        return render(request, "autonomo/showAccountingYears.html", context={"company": company, "years": accountyear_page, "pages_list": pages_list})
+    
+    return redirect("/accounts/login")
+
+def showInvoicesYear(request, year):
+
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        accountyear = AccountingYear.objects.get(company=company.id, year=year)
+        invoices = Invoice.objects.filter(accounting_year=accountyear.id)
+        paginator = Paginator(invoices, per_page=4)
+        invoices_page = paginator.page(1)
+        pages_list = []
+        for i in range(invoices_page.paginator.num_pages):
+            pages_list.append(i+1)
+
+        return render(request, "autonomo/showInvoices.html", context={"company": company, "invoices": invoices_page, "pages_list": pages_list})
+    
+    return redirect("/accounts/login")
+
+def editInvoiceLine(request, line):
+    
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        invoice_line = InvoiceLine.objects.get(id=line)
+        prod = Product.objects.get(id=invoice_line.product.id)
+
+        if request.method == "POST":
+            data = request.POST.copy()
+            data["product"] = invoice_line.product
+            data["invoice"] = invoice_line.invoice
+            data["subtotal"] = int(data["quantity"]) * prod.sale_price
+            data["iva"] = int(data["subtotal"]) * (prod.iva / 100)
+            form = InvoiceLineForm(data, instance=invoice_line)
+            if form.is_valid():
+                invoice_line = form.save()
+                invoice = Invoice.objects.get(id=invoice_line.invoice.id)
+                lines = InvoiceLine.objects.filter(invoice=invoice.id)
+                subtotal = 0.0
+                iva = 0.0
+                for line in lines:
+                    iva += line.iva
+                    subtotal += line.subtotal
+
+                invoice.subtotal = subtotal
+                invoice.iva = iva
+                invoice.total = subtotal + iva
+                invoice.save()
+                return redirect("/autonomo/showInvoice/" + str(invoice_line.invoice.id))
+            else:
+                return render(request,"autonomo/editInvoiceLine.html", context={'form': form, "company": company} )
+        else:
+            form = InvoiceLineForm(instance=invoice_line)
+
+            return render(request, "autonomo/editInvoiceLine.html", context={"company": company, "form": form})
+
+    return redirect("/accounts/login")
+
+def deleteInvoiceLine(request, line):
+    if request.user.is_authenticated:
+        invoice_line = InvoiceLine.objects.get(id=line)
+        invoice = Invoice.objects.get(id=invoice_line.invoice.id)
+
+        InvoiceLine.objects.get(id=line).delete()
+
+        lines = InvoiceLine.objects.filter(invoice=invoice.id)
+        subtotal = 0.0
+        iva = 0.0
+        for line in lines:
+            iva += line.iva
+            subtotal += line.subtotal
+
+        invoice.subtotal = subtotal
+        invoice.iva = iva
+        invoice.total = subtotal + iva
+        invoice.save()
+        return redirect("/autonomo/showInvoice/" + str(invoice.id))
+    
+    return redirect("/accounts/login")
+
+def editInvoice(request, inv_id):
+    
+    if request.user.is_authenticated:
+        company = Company.objects.get(user=request.user.id)
+        invoice = Invoice.objects.get(id=inv_id)
+
+        if request.method == "POST":
+            data = request.POST.copy()
+            data["name"] = invoice.name
+            data["subtotal"] = invoice.subtotal
+            data["iva"] = invoice.iva
+            data["total"] = invoice.total
+            data["accounting_year"] = invoice.accounting_year
+            form = InvoiceForm(data, instance=invoice)
+            if form.is_valid():
+                invoice = form.save()
+
+                return redirect("/autonomo/showInvoice/" + str(invoice.id))
+            else:
+                return render(request,"autonomo/editInvoice.html", context={'form': form, "company": company} )
+        else:
+            form = InvoiceForm(instance=invoice)
+
+            return render(request, "autonomo/editInvoice.html", context={"company": company, "form": form})
+
+    return redirect("/accounts/login")
+
+def deleteInvoice(request, inv_id):
+    if request.user.is_authenticated:
+
+        Invoice.objects.get(id=inv_id).delete()
+
+        return redirect("/autonomo/showInvoices/")
+    
+    return redirect("/accounts/login")

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    {% include "./base.html" %}
+    <body style="background-color: beige;">
+        <div class="row justify-content-center text-center" style="padding: 20px 0;">
+            <div class="card" style="width: 35cm;">
+                <div class="row">
+                    <div class="col-4">
+                        <h1>
+                            {{ invoice.name }}
+                        </h1>
+                    </div>
+                    <div class="col-5">
+    
+                    </div> 
+                    <div class="col-2" style="text-align: center">
+                        <div class="row fw-bold justify-content-center text-center">
+                            Fecha Factura:
+                        </div>
+                        <div class="row justify-content-center text-center">
+                            {{ invoice.invoicing_date }}
+                        </div>
+                        <p></p>
+                        <div class="row fw-bold justify-content-center text-center">
+                            Proveedor:
+                        </div>
+                        <div class="row justify-content-center text-center">
+                            {{ invoice.supplier }}
+                        </div>
+                    </div>
+                </div>
+                <div>
+                    <a href="/autonomo/createInvoiceLine/{{ invoice.id }}">
+                        <input type="submit" class="btn btn-success" value="Añadir Linea">
+                    </a>
+                </div>
+                <div>
+                    <p></p>
+                </div>
+                {% if lines %}
+                    <table class="table">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>SubtotalLinea</th>
+                            <th></th>
+                        </tr>
+                            {% for line in lines %}
+                                <tr>
+                                    <td>{{ line.product }}</td>
+                                    <td>{{ line.quantity }}</td>
+                                    <td>{{ line.subtotal }}</td>
+                                    <td>
+                                        <a href="/autonomo/editInvoiceLine/{{ line.id }}">
+                                            <input type="submit" class="btn btn-success" value="Editar">
+                                        </a>
+                                        <a href="/autonomo/deleteInvoiceLine/{{ line.id }}">
+                                            <input type="submit" class="btn btn-danger" value="Eliminar">
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                    </table>
+                {% endif %}
+                <div class="row" style="padding: 50px 0;">
+                    <div class="col-4">
+                        <p class="fw-bold">Subtotal</p>
+                        {{ invoice.subtotal }}
+                    </div>
+                    <div class="col-4">
+                        <p class="fw-bold">Total IVA</p>
+                        {{ invoice.iva }}
+                    </div>
+                    <div class="col-4">
+                        <p class="fw-bold">Total Factura</p>
+                        {{ invoice.total }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-4"></div>
+                    <div class="col-4">
+                        <a href="/autonomo/editInvoice/{{ invoice.id }}">
+                            <input type="submit" class="btn btn-success" value="Editar">
+                        </a>
+                        <a href="/autonomo/deleteInvoice/{{ invoice.id }}">
+                            <input type="submit" class="btn btn-danger" value="Eliminar">
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
